@@ -3,16 +3,36 @@ import Sidebar from "@/components/Sidebar";
 
 import { ThemeProvider } from "next-themes";
 import { Button } from "@/components/Button";
-import CreateTask from "@/components/CreateTask";
+import TaskModal from "@/components/TaskModal";
 import { useEffect, useState } from "react";
 import { useTask } from "@/hooks/task";
-import CreateBoard from "@/components/CreateBoard";
+import BoardModal from "@/components/BoardModal";
+import EditIcon from "@/svg/EditIcon";
 
+const statusColor = [
+  {
+    name: "Todo",
+    color: "bg-cyan-400",
+    key: "todo",
+  },
+  {
+    name: "Doing",
+    color: "bg-purple-500",
+    key: "inprogress",
+  },
+  {
+    name: "Done",
+    color: "bg-green-400",
+    key: "done",
+  },
+];
 export default function Home() {
   const [modal, setModal] = useState(false);
   const [modalBoard, setModalBoard] = useState(false);
   const taskDetail = useTask((state: any) => state.taskDetails);
   const selectedBoard = useTask((state: any) => state.selectedBoard);
+  const [editBoard, setEditBoard] = useState<any>(null);
+  const [editTask, setEditTask] = useState<any>(null);
   const [displayList, setDisplayList] = useState<any>([]);
 
   useEffect(() => {
@@ -22,7 +42,7 @@ export default function Home() {
       for (let i = 0; i < list.length; i++) {
         tempList.push({
           id: list[i],
-          title: taskDetail[list[i]].title,
+          ...taskDetail[list[i]],
         });
       }
       setDisplayList(tempList);
@@ -31,7 +51,11 @@ export default function Home() {
   return (
     <ThemeProvider defaultTheme="dark">
       <main className="flex flex-col font-Roboto">
-        <Sidebar items={displayList} setModalBoard={setModalBoard} />
+        <Sidebar
+          items={displayList}
+          setModalBoard={setModalBoard}
+          setEditBoard={setEditBoard}
+        />
         <nav className="highlight justify-center text-white ml-0 sm:ml-64">
           <button
             data-drawer-target="default-sidebar"
@@ -70,92 +94,60 @@ export default function Home() {
                   setModal(true);
                 }}
               >
-                +Add New Task
+                + Add New Task
               </Button>
             </div>
           </div>
         </nav>
         <div className="ml-0 mt-3 sm:ml-64 text-white flex flex-wrap">
-          <div className="mx-4 my-3">
-            <div className="flex items-center">
-              <div className="rounded-full bg-cyan-400 w-3 h-3"></div>
-              <small className="mx-2 uppercase text-gray-300">Todo</small>
-            </div>
-            <div className="flex flex-col">
-              {selectedBoard &&
-                taskDetail[selectedBoard] &&
-                taskDetail[selectedBoard].todo.map((task: any) => (
-                  <div key={task} className="mt-3">
-                    <a
-                      href="#"
-                      className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-                    >
-                      <h5 className="mb-2 text-base tracking-tight text-white dark:text-white">
-                        {task.title}
-                      </h5>
-                      <p className="text-xs text-gray-300 dark:text-gray-400">
-                        {task.description}
-                      </p>
-                    </a>
-                  </div>
-                ))}
-            </div>
-          </div>
+          {statusColor.map((e) => (
+            <div key={e.name} className="mx-4 my-3 min-w-80">
+              <div className="flex items-center">
+                <div className={`rounded-full ${e.color} w-3 h-3`}></div>
 
-          <div className="mx-4 my-3">
-            <div className="flex items-center">
-              <div className="rounded-full bg-purple-500 w-3 h-3"></div>
-              <small className="mx-2 uppercase">Doing</small>
+                <small className="mx-2 uppercase">{e.name}</small>
+              </div>
+              <div className="flex flex-col">
+                {selectedBoard &&
+                  taskDetail[selectedBoard] &&
+                  taskDetail[selectedBoard][e.key].map((task: any) => (
+                    <div key={task} className="mt-3">
+                      <a
+                        href="#"
+                        className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+                      >
+                        <h5 className="mb-2 flex flex-row items-center justify-between text-base tracking-tight text-white dark:text-white">
+                          {task.title}
+                          <button
+                            id="edit-icon"
+                            onClick={() => {
+                              setEditTask(task);
+                            }}
+                            className="focus:outline-none"
+                          >
+                            <EditIcon
+                              className={`flex-shrink-0 w-5 h-4 text-base  transition duration-75 dark:text-white dark:group-hover:text-white`}
+                            />
+                          </button>
+                        </h5>
+                        <p className="text-xs text-gray-300 dark:text-gray-400">
+                          {task.description}
+                        </p>
+                      </a>
+                    </div>
+                  ))}
+              </div>
             </div>
-            <div className="flex flex-col">
-              {selectedBoard &&
-                taskDetail[selectedBoard] &&
-                taskDetail[selectedBoard].inprogress.map((task: any) => (
-                  <div key={task} className="mt-3">
-                    <a
-                      href="#"
-                      className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-                    >
-                      <h5 className="mb-2 text-base tracking-tight text-white dark:text-white">
-                        {task.title}
-                      </h5>
-                      <p className="text-xs text-gray-300 dark:text-gray-400">
-                        {task.description}
-                      </p>
-                    </a>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          <div className="mx-4 my-3">
-            <div className="flex items-center">
-              <div className="rounded-full bg-green-400 w-3 h-3"></div>
-              <small className="mx-2 uppercase">Done</small>
-            </div>
-            <div className="flex flex-col">
-              {selectedBoard &&
-                taskDetail[selectedBoard] &&
-                taskDetail[selectedBoard].done.map((task: any) => (
-                  <div key={task} className="mt-3">
-                    <a
-                      href="#"
-                      className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-                    >
-                      <h5 className="mb-2 text-base tracking-tight text-white dark:text-white">
-                        {task.title}
-                      </h5>
-                      <p className="text-xs text-gray-300 dark:text-gray-400">
-                        {task.description}
-                      </p>
-                    </a>
-                  </div>
-                ))}
-            </div>
-          </div>
+          ))}
         </div>
-        {modal ? <CreateTask setModal={setModal} /> : null}
-        {modalBoard ? <CreateBoard setModal={setModalBoard} /> : null}
+        {modal ? <TaskModal setModal={setModal} /> : null}
+        {modalBoard ? <BoardModal setModal={setModalBoard} /> : null}
+        {editBoard ? (
+          <BoardModal type="edit" setModal={setEditBoard} data={editBoard} />
+        ) : null}
+        {editTask ? (
+          <TaskModal type="edit" setModal={setEditTask} data={editTask} />
+        ) : null}
       </main>
     </ThemeProvider>
   );
