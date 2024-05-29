@@ -1,113 +1,162 @@
-import Image from "next/image";
+"use client";
+import Sidebar from "@/components/Sidebar";
+
+import { ThemeProvider } from "next-themes";
+import { Button } from "@/components/Button";
+import CreateTask from "@/components/CreateTask";
+import { useEffect, useState } from "react";
+import { useTask } from "@/hooks/task";
+import CreateBoard from "@/components/CreateBoard";
 
 export default function Home() {
+  const [modal, setModal] = useState(false);
+  const [modalBoard, setModalBoard] = useState(false);
+  const taskDetail = useTask((state: any) => state.taskDetails);
+  const selectedBoard = useTask((state: any) => state.selectedBoard);
+  const [displayList, setDisplayList] = useState<any>([]);
+
+  useEffect(() => {
+    if (taskDetail) {
+      let list = Object.keys(taskDetail);
+      const tempList = [];
+      for (let i = 0; i < list.length; i++) {
+        tempList.push({
+          id: list[i],
+          title: taskDetail[list[i]].title,
+        });
+      }
+      setDisplayList(tempList);
+    }
+  }, [taskDetail]);
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <ThemeProvider defaultTheme="dark">
+      <main className="flex flex-col font-Roboto">
+        <Sidebar items={displayList} setModalBoard={setModalBoard} />
+        <nav className="highlight justify-center text-white ml-0 sm:ml-64">
+          <button
+            data-drawer-target="default-sidebar"
+            data-drawer-toggle="default-sidebar"
+            aria-controls="default-sidebar"
+            type="button"
+            className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            <span className="sr-only">Open sidebar</span>
+            <svg
+              className="w-6 h-6"
+              aria-hidden="true"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                clip-rule="evenodd"
+                fill-rule="evenodd"
+                d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+              ></path>
+            </svg>
+          </button>
+          <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-7">
+            <div>
+              <h2 className=" text-xl font-bold">
+                {selectedBoard && taskDetail[selectedBoard]
+                  ? taskDetail[selectedBoard].title
+                  : "Welcome To Board"}
+              </h2>
+            </div>
+
+            <div>
+              <Button
+                onClick={() => {
+                  setModal(true);
+                }}
+              >
+                +Add New Task
+              </Button>
+            </div>
+          </div>
+        </nav>
+        <div className="ml-0 mt-3 sm:ml-64 text-white flex flex-wrap">
+          <div className="mx-4 my-3">
+            <div className="flex items-center">
+              <div className="rounded-full bg-cyan-400 w-3 h-3"></div>
+              <small className="mx-2 uppercase text-gray-300">Todo</small>
+            </div>
+            <div className="flex flex-col">
+              {selectedBoard &&
+                taskDetail[selectedBoard] &&
+                taskDetail[selectedBoard].todo.map((task: any) => (
+                  <div key={task} className="mt-3">
+                    <a
+                      href="#"
+                      className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+                    >
+                      <h5 className="mb-2 text-base tracking-tight text-white dark:text-white">
+                        {task.title}
+                      </h5>
+                      <p className="text-xs text-gray-300 dark:text-gray-400">
+                        {task.description}
+                      </p>
+                    </a>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="mx-4 my-3">
+            <div className="flex items-center">
+              <div className="rounded-full bg-purple-500 w-3 h-3"></div>
+              <small className="mx-2 uppercase">Doing</small>
+            </div>
+            <div className="flex flex-col">
+              {selectedBoard &&
+                taskDetail[selectedBoard] &&
+                taskDetail[selectedBoard].inprogress.map((task: any) => (
+                  <div key={task} className="mt-3">
+                    <a
+                      href="#"
+                      className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+                    >
+                      <h5 className="mb-2 text-base tracking-tight text-white dark:text-white">
+                        {task.title}
+                      </h5>
+                      <p className="text-xs text-gray-300 dark:text-gray-400">
+                        {task.description}
+                      </p>
+                    </a>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="mx-4 my-3">
+            <div className="flex items-center">
+              <div className="rounded-full bg-green-400 w-3 h-3"></div>
+              <small className="mx-2 uppercase">Done</small>
+            </div>
+            <div className="flex flex-col">
+              {selectedBoard &&
+                taskDetail[selectedBoard] &&
+                taskDetail[selectedBoard].done.map((task: any) => (
+                  <div key={task} className="mt-3">
+                    <a
+                      href="#"
+                      className="block w-80 p-6 highlight rounded-lg shadow  dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+                    >
+                      <h5 className="mb-2 text-base tracking-tight text-white dark:text-white">
+                        {task.title}
+                      </h5>
+                      <p className="text-xs text-gray-300 dark:text-gray-400">
+                        {task.description}
+                      </p>
+                    </a>
+                  </div>
+                ))}
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+        {modal ? <CreateTask setModal={setModal} /> : null}
+        {modalBoard ? <CreateBoard setModal={setModalBoard} /> : null}
+      </main>
+    </ThemeProvider>
   );
 }
