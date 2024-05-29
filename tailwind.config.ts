@@ -13,6 +13,7 @@ const config: Config = {
       backgroundColor: {
         "button-color": "var(--button-color)",
       },
+
       fontFamily: {
         Roboto: ["Roboto", "sans-serif"],
       },

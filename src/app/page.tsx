@@ -4,7 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemeProvider } from "next-themes";
 import { Button } from "@/components/Button";
 import TaskModal from "@/components/TaskModal";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTask } from "@/hooks/task";
 import BoardModal from "@/components/BoardModal";
 import EditIcon from "@/svg/EditIcon";
@@ -32,8 +32,10 @@ export default function Home() {
   const taskDetail = useTask((state: any) => state.taskDetails);
   const selectedBoard = useTask((state: any) => state.selectedBoard);
   const [editBoard, setEditBoard] = useState<any>(null);
+  const sidebarRef = useRef<any>(null);
   const [editTask, setEditTask] = useState<any>(null);
   const [displayList, setDisplayList] = useState<any>([]);
+  const [sideBarStatus, setSidebarstatus] = useState(window.innerWidth >= 640);
 
   useEffect(() => {
     if (taskDetail) {
@@ -48,20 +50,53 @@ export default function Home() {
       setDisplayList(tempList);
     }
   }, [taskDetail]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 640) {
+        setSidebarstatus(true); // Show sidebar on screens >= 640px
+      } else {
+        setSidebarstatus(false); // Hide sidebar on screens < 640px
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      console.log("data ", sidebarRef.current, event.target);
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setSidebarstatus(false); // Close sidebar if clicked outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <ThemeProvider defaultTheme="dark">
       <main className="flex flex-col font-Roboto">
         <Sidebar
+          refItem={sidebarRef}
+          sidebarStatus={sideBarStatus}
           items={displayList}
           setModalBoard={setModalBoard}
           setEditBoard={setEditBoard}
         />
-        <nav className="highlight justify-center text-white ml-0 sm:ml-64">
+        <nav className="highlight flex flex-row justify-center text-white ml-0 sm:ml-64">
           <button
             data-drawer-target="default-sidebar"
             data-drawer-toggle="default-sidebar"
             aria-controls="default-sidebar"
             type="button"
+            onClick={() => setSidebarstatus(!sideBarStatus)}
             className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
             <span className="sr-only">Open sidebar</span>
@@ -79,7 +114,7 @@ export default function Home() {
               ></path>
             </svg>
           </button>
-          <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-7">
+          <div className="w-full flex flex-wrap items-center max-sm:font-normal justify-between p-7">
             <div>
               <h2 className=" text-xl font-bold">
                 {selectedBoard && taskDetail[selectedBoard]
